@@ -1,207 +1,4 @@
-// import User from "../models/User.js";
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-// import generateToken from "../utils/generateToken.js";
-// import sendEmail from "../utils/sendEmail.js";
-// import crypto from "crypto";
-// import { OAuth2Client } from "google-auth-library";
-// import dotenv from "dotenv";
 
-// dotenv.config();
-// const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-// // -------------------- REGISTER --------------------
-// export const registerUser = async (req, res) => {
-//   try {
-//     const { name, email, password, role } = req.body;
-
-//     if (!name || !email || !password || !role) {
-//       return res.status(400).json({ success: false, message: "All fields are required" });
-//     }
-
-//     const existingUser = await User.findOne({ email });
-//     if (existingUser) {
-//       return res.status(400).json({ success: false, message: "Email already exists" });
-//     }
-
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     const user = await User.create({ name, email, password: hashedPassword, role });
-
-//     res.status(201).json({
-//       success: true,
-//       message: "User registered successfully",
-//       user: { id: user._id, name: user.name, email: user.email, role: user.role },
-//       token: generateToken(user._id),
-//     });
-//   } catch (error) {
-//     console.error("Register Error:", error);
-//     res.status(500).json({ success: false, message: "Server error while registering user", error: error.message });
-//   }
-// };
-
-// // -------------------- LOGIN --------------------
-// export const loginUser = async (req, res) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     if (!email || !password)
-//       return res.status(400).json({ success: false, message: "Email and password are required" });
-
-//     const user = await User.findOne({ email });
-//     if (!user)
-//       return res.status(400).json({ success: false, message: "Invalid credentials" });
-
-//     const isPasswordMatch = await bcrypt.compare(password, user.password);
-//     if (!isPasswordMatch)
-//       return res.status(400).json({ success: false, message: "Invalid credentials" });
-
-//     res.json({
-//       success: true,
-//       message: "Login successful",
-//       user: { id: user._id, name: user.name, email: user.email, role: user.role },
-//       token: generateToken(user._id),
-//     });
-//   } catch (error) {
-//     console.error("Login Error:", error);
-//     res.status(500).json({ success: false, message: "Server error while logging in", error: error.message });
-//   }
-// };
-
-// // -------------------- GET PROFILE --------------------
-// export const getUserProfile = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.user._id).select("-password");
-//     if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-//     res.json({ success: true, user });
-//   } catch (error) {
-//     console.error("Get Profile Error:", error);
-//     res.status(500).json({ success: false, message: "Server error fetching profile", error: error.message });
-//   }
-// };
-
-// // -------------------- GOOGLE LOGIN --------------------
-// export const googleLogin = async (req, res) => {
-//   try {
-//     const { tokenId } = req.body;
-//     const ticket = await client.verifyIdToken({ idToken: tokenId, audience: process.env.GOOGLE_CLIENT_ID });
-//     const { email, name } = ticket.getPayload();
-
-//     let user = await User.findOne({ email });
-//     if (!user) {
-//       const randomPassword = crypto.randomBytes(20).toString("hex");
-//       user = await User.create({ name, email, password: await bcrypt.hash(randomPassword, 10), role: "customer" });
-//     }
-
-//     res.json({
-//       success: true,
-//       message: "Google login successful",
-//       user: { id: user._id, name: user.name, email: user.email, role: user.role },
-//       token: generateToken(user._id),
-//     });
-//   } catch (error) {
-//     console.error("Google login error:", error);
-//     res.status(500).json({ success: false, message: "Google login failed", error: error.message });
-//   }
-// };
-
-// // -------------------- FORGOT PASSWORD --------------------
-// export const forgotPassword = async (req, res) => {
-//   try {
-//     const { email } = req.body;
-//     if (!email) return res.status(400).json({ message: "Email is required" });
-
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(404).json({ message: "User not found" });
-
-//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-//     user.resetPasswordOTP = otp;
-//     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-//     await user.save();
-
-//     await sendEmail({
-//       to: user.email,
-//       subject: "OTP for Password Reset",
-//       text: `Your OTP is ${otp}. It expires in 10 minutes.`,
-//     });
-
-//     res.json({ message: "OTP sent successfully to your email!" });
-//   } catch (err) {
-//     console.error("Forgot Password Error:", err);
-//     res.status(500).json({ message: "Error sending OTP" });
-//   }
-// };
-
-// // -------------------- VERIFY OTP --------------------
-// export const verifyOtp = async (req, res) => {
-//   try {
-//     const { email, otp } = req.body;
-//     if (!email || !otp) return res.status(400).json({ message: "Email and OTP are required" });
-
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(404).json({ message: "User not found" });
-
-//     if (!user.resetPasswordOTP || user.resetPasswordOTP !== otp)
-//       return res.status(400).json({ message: "Invalid OTP" });
-
-//     if (user.resetPasswordExpire < Date.now())
-//       return res.status(400).json({ message: "OTP expired" });
-
-//     res.json({ message: "OTP verified successfully!" });
-//   } catch (err) {
-//     console.error("Verify OTP Error:", err);
-//     res.status(500).json({ message: "Error verifying OTP" });
-//   }
-// };
-
-// // -------------------- RESET PASSWORD --------------------
-// export const resetPassword = async (req, res) => {
-//   try {
-//     const { email, otp, password } = req.body;
-//     if (!email || !otp || !password) return res.status(400).json({ message: "All fields are required" });
-
-//     const user = await User.findOne({ email });
-//     if (!user) return res.status(404).json({ message: "User not found" });
-
-//     if (!user.resetPasswordOTP || user.resetPasswordOTP !== otp)
-//       return res.status(400).json({ message: "Invalid OTP" });
-
-//     if (user.resetPasswordExpire < Date.now())
-//       return res.status(400).json({ message: "OTP expired" });
-
-//     user.password = password;
-//     user.resetPasswordOTP = undefined;
-//     user.resetPasswordExpire = undefined;
-//     await user.save();
-
-//     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-//     res.json({ message: "Password reset successful", token });
-//   } catch (err) {
-//     console.error("Reset Password Error:", err);
-//     res.status(500).json({ message: "Error resetting password" });
-//   }
-// };
-
-// // -------------------- UPDATE PROFILE --------------------
-// export const updateUserProfile = async (req, res) => {
-//   try {
-//     const user = await User.findById(req.user._id);
-//     if (!user) return res.status(404).json({ success: false, message: "User not found" });
-
-//     const { name, email, password } = req.body;
-//     if (name) user.name = name;
-//     if (email) user.email = email;
-//     if (password) user.password = await bcrypt.hash(password, 10);
-
-//     await user.save();
-
-//     res.json({ success: true, message: "Profile updated successfully", user: { id: user._id, name: user.name, email: user.email, role: user.role }, token: generateToken(user._id) });
-//   } catch (error) {
-//     console.error("Update Profile Error:", error);
-//     res.status(500).json({ success: false, message: "Error updating profile", error: error.message });
-//   }
-// };
 
 
 
@@ -214,62 +11,23 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 
 
-// Generate JWT
-// // const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-// const generateToken = (id) =>
-//   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
-
-// const cookieOptions = {
-//   httpOnly: true,
-//   secure: process.env.NODE_ENV === "production",
-//   sameSite: "lax",
-//   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-// };
-
 // Token & cookie options (same as munnaadi)
 const generateToken = (id) =>
   jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
 
+// const cookieOptions = {
+//   httpOnly: true,
+//   secure: true,         // REQUIRED for Vercel & Render
+//   sameSite: "None",     // REQUIRED for cross-site cookies
+//   path: "/"
+// };
 const cookieOptions = {
   httpOnly: true,
-  secure: true,         // REQUIRED for Vercel & Render
-  sameSite: "None",     // REQUIRED for cross-site cookies
-  path: "/"
+  secure: process.env.NODE_ENV === "production",         // 🔁 only secure in prod
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+  path: "/",
 };
 
-// Register
-// export const register = async (req, res) => {
-//   const { name, email, password, role } = req.body;
-//   try {
-//     const existing = await User.findOne({ email });
-//     if(existing) return res.status(400).json({ message: "Email already exists" });
-
-//     const user = await User.create({ name, email, password, role });
-//     const token = generateToken(user._id);
-//     res.json({ token, user });
-//   } catch(err){
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
-
-// export const register = async (req, res) => {
-//   const { name, email, password, role } = req.body;
-//   try {
-//     const existing = await User.findOne({ email });
-//     if (existing) return res.status(400).json({ message: "Email already exists" });
-
-//     // Allow only "customer" or "farmer" from frontend. Admin manual‑aa create panna vendum.
-//     let finalRole = "customer";
-//     if (role === "farmer") finalRole = "farmer";
-
-//     const user = await User.create({ name, email, password, role: finalRole });
-//     const token = generateToken(user._id);
-//     res.json({ token, user });
-//   } catch (err) {
-//     res.status(500).json({ message: err.message });
-//   }
-// };
 
 export const register = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -294,30 +52,6 @@ export const register = async (req, res) => {
   }
 };
 
-// // Login
-// export const login = async (req, res) => {
-//   const { email, password } = req.body;
-//   try {
-//     const user = await User.findOne({ email });
-//     if(!user || !user.password) 
-//       return res.status(400).json({ message: "Invalid credentials" });
-
-// if (user.role === "farmer" && !user.approved) {
-//   return res.status(403).json({
-//     message: "Your farmer account is waiting for admin approval.",
-//   });
-// }
-
-//     const match = await user.matchPassword(password);
-//     if(!match) return res.status(400).json({ message: "Invalid credentials" });
-
-//     const token = generateToken(user._id);
-//     res.json({ token, user });
-//   } catch(err){
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
 export const login = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -340,52 +74,6 @@ export const login = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error", error: err.message });
   }
 };
-// Google Login
-// export const googleLogin = async (req, res) => {
-//   const { email, name, googleId } = req.body;
-//   try {
-//     let user = await User.findOne({ email });
-
-//     if(user){
-//       // Update googleId if missing
-//       if(!user.googleId){
-//         user.googleId = googleId;
-//         await user.save();
-//       }
-//     } else {
-//       user = await User.create({ name, email, googleId });
-//     }
-
-//     const token = generateToken(user._id);
-//     res.json({ token, user });
-//   } catch(err){
-//     res.status(500).json({ message: err.message });
-//   }
-// // };
-// export const googleLogin = async (req, res) => {
-//   const { email, name, googleId } = req.body;
-//   try {
-//     let user = await User.findOne({ email });
-
-//     if (user) {
-//       if (!user.googleId) {
-//         user.googleId = googleId;
-//         await user.save();
-//       }
-//     } else {
-//       user = await User.create({ name, email, googleId });
-//     }
-
-//     const token = generateToken(user._id);
-
-//     res
-//       .cookie("token", token, cookieOptions)
-//       .json({ success: true, token, user });
-//   } catch (err) {
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// };
-// src/controllers/authController.js (inside same file)
 export const googleLogin = async (req, res) => {
   const { email, name, googleId } = req.body;
   try {

@@ -1,21 +1,3 @@
-// import express from "express";
-// import { authMiddleware } from "../middleware/authMiddleware.js";
-// import { addStock, approveStock, getPendingStocks , getFarmerStock } from "../controllers/farmerStockController.js";
-// const router = express.Router();
-
-// // Farmer adds stock
-// router.post("/", authMiddleware(["farmer"]), addStock);
-
-// // Admin approves stock
-// router.put("/approve/:id", authMiddleware(["admin"]), approveStock);
-
-// // Admin: view pending stocks
-// router.get("/pending", authMiddleware(["admin"]), getPendingStocks);
-
-// router.get("/farmer/:id", authMiddleware(["farmer", "admin"]), getFarmerStock);
-
-// export default router;
-
 
 import express from "express";
 import { protect, authMiddleware, protectWithRole } from "../middleware/authMiddleware.js";

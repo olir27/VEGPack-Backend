@@ -30,28 +30,33 @@ export const createProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
-    let { page = 1, limit = 20 } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
+    let { page = 1, limit = 20, type } = req.query;
 
-    const total = await Product.countDocuments(); // total number of products
-    const products = await Product.find()
+    page = Number(page);
+    limit = Number(limit);
+
+    const filter = {};
+    if (type) filter.type = type; // 🔥 server-side filter
+
+    const total = await Product.countDocuments(filter);
+
+    const products = await Product.find(filter)
+      .select("name price image description vegetables type") // keep minimal
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
-    res.status(200).json({
+    res.json({
       success: true,
       products,
-      page,
-      limit,
       totalPages: Math.ceil(total / limit),
       totalProducts: total,
     });
   } catch (err) {
-    console.error("Get Products Error:", err);
-    res.status(500).json({ success: false, message: "Server error", error: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // controllers/productController.js
 export const getProductById = async (req, res) => {

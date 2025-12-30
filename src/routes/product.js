@@ -5,8 +5,9 @@ import { protect, authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+router.post("/", protect, authMiddleware(["admin"]), createProduct); 
 router.get("/", getProducts); // for customers
-router.post("/", protect, authMiddleware(["admin"]), createProduct); // admin add product
+// admin add product
 router.get("/:id", getProductById); // get single product by id
 
 export default router;
